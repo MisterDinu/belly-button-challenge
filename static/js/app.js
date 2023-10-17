@@ -1,14 +1,29 @@
 let url = "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json";
 
+
+// function initialChart(){
+//   data = [{
+//     x: [1, 2, 3, 4, 5],
+//     y: [1, 2, 4, 8, 16] }];
+//   Plotly.newPlot("bar", data)
+// }
+// initialChart();
+  
 // TO RETRIEVE THE SAMPLE VALUES, LABELS, AND HOVERTEXT
 
 d3.json(url).then(function(data) {
   let sampleVal = data.samples;
+  // console.log(sampleVal)
+  
+  let metadata = data.metadata;
+  console.log(metadata[0])
 
-  // CREATING ARRAYS FOR THE PLOTS
-
+  // CREATING ARRAYS FOR THE PLOTS (THE DATA I NEED)
   let sampleData = sampleVal.map(function(sample){
     return sample.sample_values;
+  })
+  let ids = sampleVal.map(function(sample){
+    return sample.id;
   })
   let labels = sampleVal.map(function(sample){
     return sample.otu_ids;
@@ -16,12 +31,13 @@ d3.json(url).then(function(data) {
   let hovertext = sampleVal.map(function(sample){
     return sample.otu_labels;
   })
-  console.log(sampleData)
-  console.log(labels)
-  console.log(hovertext)
+
+  // console.log("the sample data is" + sampleData)
+  // console.log("the labels are" + labels)
+  // console.log("the hovertext is" + hovertext)
+  // console.log("the ids are" + ids)
 
   // SETTING BAR CHART
-
   var trace = {
   x: sampleData[0].slice(0, 10),
   y: labels[0].slice(0, 10).map(id => `OTU ${id}`),
@@ -30,23 +46,6 @@ d3.json(url).then(function(data) {
   orientation: 'h'
 };
 
-  // DROPDOWN CONFIG
-const dropdown = d3.select("#selDataset");
-
-labels.forEach((item) => {
-  dropdown
-    .append("option")
-    .text(`${item[0]}`)
-    .attr("value", item); 
-});
-
-dropdown.on("change", function () {
-  const selectedOTU = this.value;
-  const filteredData = data.filter((item) => item.otu_ids === +selectedOTU); // Assuming otu_ids are numeric
-  updateChart(filteredData);
-});
-
-
   var data = [trace]
 
   // PLOTING BAR CHART
@@ -54,7 +53,66 @@ dropdown.on("change", function () {
   function initialChart(){
       Plotly.newPlot("bar", data)
   }
-  initialChart()
+  initialChart();
+
+// DROPDOWN FUNCTION
+  function initializeDropdown(){
+    const dropdown = d3.select("#selDataset");
+      ids.forEach((item) => {
+        dropdown
+        .append("option")
+        .text(`${item}`)
+        });
+      dropdown.on("change", function () {
+        const selectedOTU = this.value;
+        fetchAndDisplayData(selectedOTU); // NEW
+      });
+  }
+
+  fetchAndDisplayData(ids[0]);
+  initializeDropdown(data);
+
+
+  // TO CHANGE THE DISPLAYED DEMOGRAPHIC INFO
+  function fetchAndDisplayData(selectedOTU) { // NEW
+    // console.log("selected otu: " + selectedOTU);
+    var sampleMetadata = d3.select("#sample-metadata"); // NEW
+    var selectedMetadata = metadata.find(item => item.id === parseInt(selectedOTU));
+    var selectedId = selectedMetadata.id;
+    var selectedEthnicity = selectedMetadata.ethnicity;
+    var selectedGender = selectedMetadata.gender;
+    var selectedAge = selectedMetadata.age;
+    var selectedLocation = selectedMetadata.location;
+    var selectedBbtype = selectedMetadata.bbtype;
+    var selectedWfreq = selectedMetadata.wfreq;
+
+    console.log("selected metadata: " + selectedMetadata)
+    var text = "Fetching data: " + "<br>"+ "ID: " + selectedId +
+    "<br>" + "Ethnicity: " + selectedEthnicity + "<br>" +
+    "Gender: " + selectedGender + "<br>" +
+    "Age: " + selectedAge + "<br>" + 
+    "Location: " + selectedLocation + "<br>" + 
+    "Bbtype: " + selectedBbtype + "<br>" + 
+    "Wfreq: " + selectedWfreq + "<br>";
+    sampleMetadata.html(text); 
+    
+    var OTUSample = ids.indexOf(selectedOTU);
+    if (OTUSample !== -1) {
+        var trace = {
+            x: sampleData[OTUSample].slice(0, 10),
+            y: labels[OTUSample].slice(0, 10).map(id => `OTU ${id}`),
+            text: hovertext[OTUSample].slice(0, 10),
+            type: 'bar',
+            orientation: 'h'
+        };
+
+        var updatedData = [trace];
+
+        // Actualiza el gráfico de barras
+        Plotly.newPlot("bar", updatedData);
+    }
+  }
+
 
   // ERROR HANDLER
 
