@@ -49,11 +49,39 @@ d3.json(url).then(function(data) {
   var data = [trace]
 
   // PLOTING BAR CHART
-
   function initialChart(){
       Plotly.newPlot("bar", data)
   }
+
   initialChart();
+
+  // BUBURI CHARTO!!
+  var traceBubble = {
+    x: labels,
+    y: sampleData,
+    text:hovertext,
+    mode: 'markers',
+    marker: {
+      size: sampleData,
+      color:labels,
+      sizeref: 2.0 * Math.max(10) / (4**2)
+    }
+  }
+
+  var layout = {
+    title: 'Bubble Chart Size Scaling',
+    showlegend: false,
+    height: 600,
+    width: 600
+  };
+
+  var dataBubble = [traceBubble]
+
+  // PLOTING BUBURI CHART
+  function initialBubbleChart(){
+      Plotly.newPlot("bubble", dataBubble, layout)
+  }
+  initialBubbleChart()
 
 // DROPDOWN FUNCTION
   function initializeDropdown(){
@@ -95,7 +123,8 @@ d3.json(url).then(function(data) {
     "Bbtype: " + selectedBbtype + "<br>" + 
     "Wfreq: " + selectedWfreq + "<br>";
     sampleMetadata.html(text); 
-    
+
+    // TO UPDATE THE BARCHART
     var OTUSample = ids.indexOf(selectedOTU);
     if (OTUSample !== -1) {
         var trace = {
@@ -105,14 +134,26 @@ d3.json(url).then(function(data) {
             type: 'bar',
             orientation: 'h'
         };
+        var trace2 = {
+          x: labels[OTUSample],
+          y: sampleData[OTUSample],
+          text:hovertext[OTUSample],
+          mode: 'markers',
+          marker: {
+            size: sampleData[OTUSample],
+            color:labels[OTUSample],
+            sizeref: 2.0 * Math.max(10) / (4**2)
+          }
+        }
 
         var updatedData = [trace];
+        var updatedBubble = [trace2];
 
-        // Actualiza el gráfico de barras
         Plotly.newPlot("bar", updatedData);
+        Plotly.newPlot("bubble", updatedBubble)
     }
   }
-
+    // TO UPDATE THE BUBURICHART
 
   // ERROR HANDLER
 
